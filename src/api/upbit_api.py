@@ -34,6 +34,16 @@ class UpbitAPI:
         logger.info(f"[{currency}] 잔고: {balance:,.2f}")
         return balance
 
+    def get_avg_buy_price(self, ticker: str) -> float:
+        """평균매수가 조회. 미보유 또는 오류 시 0.0 반환"""
+        try:
+            coin = ticker.split("-")[1]  # "KRW-BTC" → "BTC"
+            price = self.upbit.get_avg_buy_price(coin)
+            return float(price) if price else 0.0
+        except Exception as e:
+            logger.warning(f"평균매수가 조회 실패: {e}")
+            return 0.0
+
     # ── 주문 ─────────────────────────────────────────────────────
 
     def buy_market_order(self, ticker: str, amount_krw: float):
