@@ -1,4 +1,5 @@
 .env
+*.key
 logs/
 venv/
 __pycache__/
