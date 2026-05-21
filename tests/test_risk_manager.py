@@ -58,6 +58,6 @@ def test_take_profit_boundary_below():
 
 def test_trailing_stop_boundary_above():
     rm = RiskManager(take_profit=0.02, trailing_stop=0.02)
-    # 고점 110, 현재 108.9 → 108.9 > 110 * 0.98 = 107.8 → HOLD
+    # 고점 110, 현재 108.9 → 108.9 >= 100 * 1.02 = 102.0 → SELL (익절)
     df = _make_df([100, 105, 110, 108.9])
-    assert rm.check(avg_buy_price=100.0, df=df) == HOLD
+    assert rm.check(avg_buy_price=100.0, df=df) == SELL

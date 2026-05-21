@@ -18,7 +18,7 @@ class RiskManager:
         above_buy = df["close"][df["close"] >= avg_buy_price]
         trailing_high = float(above_buy.max()) if not above_buy.empty else avg_buy_price
 
-        if current_price >= avg_buy_price * (1 + self.take_profit) and current_price >= trailing_high:
+        if current_price >= avg_buy_price * (1 + self.take_profit):
             logger.info(f"익절 신호: 현재가 {current_price:,.0f} / 매수가 {avg_buy_price:,.0f} (+{self.take_profit*100:.0f}%)")
             return SELL
 
