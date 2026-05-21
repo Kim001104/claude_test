@@ -13,6 +13,9 @@ class RiskManager:
         self.trailing_stop = trailing_stop
 
     def check(self, avg_buy_price: float, df: pd.DataFrame) -> str:
+        if df.empty:
+            logger.warning("데이터 없음 — HOLD 반환")
+            return HOLD
         current_price = df.iloc[-1]["close"]
 
         above_buy = df["close"][df["close"] >= avg_buy_price]
