@@ -18,7 +18,8 @@ class RiskManager:
             return HOLD
         current_price = df.iloc[-1]["close"]
 
-        above_buy = df["close"][df["close"] >= avg_buy_price]
+        recent = df["close"].iloc[-20:]
+        above_buy = recent[recent >= avg_buy_price]
         trailing_high = float(above_buy.max()) if not above_buy.empty else avg_buy_price
 
         if current_price >= avg_buy_price * (1 + self.take_profit):

@@ -33,6 +33,8 @@ class Trader:
                 if risk_signal == SELL:
                     self.api.sell_market_order(self.ticker, volume)
                     return
+            else:
+                logger.warning("평균매수가 조회 실패 — 리스크 체크 건너뜀, 전략 신호만 사용")
 
             strategy_signal = self.strategy.generate_signal(df)
             if strategy_signal == SELL:
