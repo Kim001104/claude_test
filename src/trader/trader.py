@@ -1,5 +1,6 @@
 from src.api.upbit_api import UpbitAPI
 from src.strategy.ma_rsi_strategy import MaRsiStrategy, BUY, SELL
+from src.strategy.risk_manager import RiskManager
 from src.utils.logger import get_logger
 from config.settings import TRADE_COIN, INVEST_AMOUNT
 
@@ -10,6 +11,7 @@ class Trader:
     def __init__(self):
         self.api = UpbitAPI()
         self.strategy = MaRsiStrategy()
+        self.risk = RiskManager()
         self.ticker = TRADE_COIN
 
     def run_once(self):
@@ -21,20 +23,27 @@ class Trader:
             logger.error("캔들 데이터 조회 실패")
             return
 
-        signal = self.strategy.generate_signal(df)
+        coin = self.ticker.split("-")[1]
+        volume = self.api.get_balance(coin)
 
-        if signal == BUY:
-            krw_balance = self.api.get_balance("KRW")
-            amount = min(INVEST_AMOUNT, krw_balance)
-            if amount < 5000:
-                logger.warning(f"KRW 잔고 부족 ({krw_balance:,.0f}원) — 매수 건너뜀")
-                return
-            self.api.buy_market_order(self.ticker, amount)
+        if volume > 0:
+            avg_buy_price = self.api.get_avg_buy_price(self.ticker)
+            if avg_buy_price > 0:
+                risk_signal = self.risk.check(avg_buy_price, df)
+                if risk_signal == SELL:
+                    self.api.sell_market_order(self.ticker, volume)
+                    return
 
-        elif signal == SELL:
-            coin = self.ticker.split("-")[1]  # "KRW-BTC" → "BTC"
-            volume = self.api.get_balance(coin)
-            if volume <= 0:
-                logger.warning(f"{coin} 잔고 없음 — 매도 건너뜀")
-                return
-            self.api.sell_market_order(self.ticker, volume)
+            strategy_signal = self.strategy.generate_signal(df)
+            if strategy_signal == SELL:
+                self.api.sell_market_order(self.ticker, volume)
+
+        else:
+            strategy_signal = self.strategy.generate_signal(df)
+            if strategy_signal == BUY:
+                krw_balance = self.api.get_balance("KRW")
+                amount = min(INVEST_AMOUNT, krw_balance)
+                if amount < 5000:
+                    logger.warning(f"KRW 잔고 부족 ({krw_balance:,.0f}원) — 매수 건너뜀")
+                    return
+                self.api.buy_market_order(self.ticker, amount)
