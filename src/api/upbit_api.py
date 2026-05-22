@@ -40,7 +40,6 @@ class UpbitAPI:
         try:
             balance = self.upbit.get_balance(currency)
             if balance is None:
-                logger.warning(f"[{currency}] 잔고 조회 실패 — 0 반환")
                 return 0.0
             logger.info(f"[{currency}] 잔고: {balance:,.2f}")
             return float(balance)
