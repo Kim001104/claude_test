@@ -1,9 +1,13 @@
 import sys, os
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
+import pandas as pd
+from unittest.mock import patch
+
 import pyupbit
 from src.strategy.ma_rsi_strategy import MaRsiStrategy
 from src.strategy.indicators import moving_average, rsi
+
 
 def test_signal():
     df = pyupbit.get_ohlcv("KRW-BTC", interval="day", count=50)
@@ -21,15 +25,6 @@ def test_indicators():
     print(f"MA20: {ma20:,.0f}원")
     print(f"RSI:  {rsi_val:.2f}")
     assert 0 < rsi_val < 100
-
-if __name__ == "__main__":
-    test_indicators()
-    test_signal()
-    print("\n모든 전략 테스트 통과")
-
-
-import pandas as pd
-from unittest.mock import patch
 
 
 def _make_dummy_df(n=25):
@@ -104,3 +99,9 @@ def test_sell_when_rsi_overbought():
         mock_rsi.return_value = pd.Series([80.0] * 25)
         signal = strategy.generate_signal(df)
     assert signal == "SELL"
+
+
+if __name__ == "__main__":
+    test_indicators()
+    test_signal()
+    print("\n모든 전략 테스트 통과")

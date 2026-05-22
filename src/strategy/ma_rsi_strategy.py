@@ -17,14 +17,12 @@ class MaRsiStrategy:
         rsi_period: int = 14,
         rsi_buy_max: float = 60.0,
         rsi_overbought: float = 75.0,
-        rsi_oversold: float = 30.0,
     ):
         self.short_window = short_window
         self.long_window = long_window
         self.rsi_period = rsi_period
         self.rsi_buy_max = rsi_buy_max
         self.rsi_overbought = rsi_overbought
-        self.rsi_oversold = rsi_oversold
 
     def generate_signal(self, df: pd.DataFrame) -> str:
         if len(df) < self.long_window + 1:
