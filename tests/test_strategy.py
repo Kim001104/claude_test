@@ -26,3 +26,81 @@ if __name__ == "__main__":
     test_indicators()
     test_signal()
     print("\n모든 전략 테스트 통과")
+
+
+import pandas as pd
+from unittest.mock import patch
+
+
+def _make_dummy_df(n=25):
+    return pd.DataFrame({
+        "close": [100.0] * n,
+        "open":  [100.0] * n,
+        "high":  [100.0] * n,
+        "low":   [100.0] * n,
+        "volume":[1000.0] * n,
+    })
+
+
+def test_buy_when_ma_up_and_rsi_below_60():
+    """단기MA > 장기MA 상태 + RSI 50 → BUY"""
+    strategy = MaRsiStrategy(short_window=5, long_window=20,
+                             rsi_buy_max=60.0, rsi_overbought=75.0)
+    df = _make_dummy_df(25)
+    with patch("src.strategy.ma_rsi_strategy.moving_average") as mock_ma, \
+         patch("src.strategy.ma_rsi_strategy.rsi") as mock_rsi:
+        mock_ma.side_effect = [
+            pd.Series([110.0] * 25),  # ma_short
+            pd.Series([100.0] * 25),  # ma_long
+        ]
+        mock_rsi.return_value = pd.Series([50.0] * 25)
+        signal = strategy.generate_signal(df)
+    assert signal == "BUY"
+
+
+def test_no_buy_when_rsi_above_60():
+    """단기MA > 장기MA 상태지만 RSI 65 → HOLD"""
+    strategy = MaRsiStrategy(short_window=5, long_window=20,
+                             rsi_buy_max=60.0, rsi_overbought=75.0)
+    df = _make_dummy_df(25)
+    with patch("src.strategy.ma_rsi_strategy.moving_average") as mock_ma, \
+         patch("src.strategy.ma_rsi_strategy.rsi") as mock_rsi:
+        mock_ma.side_effect = [
+            pd.Series([110.0] * 25),
+            pd.Series([100.0] * 25),
+        ]
+        mock_rsi.return_value = pd.Series([65.0] * 25)
+        signal = strategy.generate_signal(df)
+    assert signal == "HOLD"
+
+
+def test_sell_when_ma_down():
+    """단기MA < 장기MA 상태 → SELL"""
+    strategy = MaRsiStrategy(short_window=5, long_window=20,
+                             rsi_buy_max=60.0, rsi_overbought=75.0)
+    df = _make_dummy_df(25)
+    with patch("src.strategy.ma_rsi_strategy.moving_average") as mock_ma, \
+         patch("src.strategy.ma_rsi_strategy.rsi") as mock_rsi:
+        mock_ma.side_effect = [
+            pd.Series([90.0] * 25),   # ma_short < ma_long
+            pd.Series([100.0] * 25),
+        ]
+        mock_rsi.return_value = pd.Series([50.0] * 25)
+        signal = strategy.generate_signal(df)
+    assert signal == "SELL"
+
+
+def test_sell_when_rsi_overbought():
+    """RSI 80 >= 75 → SELL (MA 상태 무관)"""
+    strategy = MaRsiStrategy(short_window=5, long_window=20,
+                             rsi_buy_max=60.0, rsi_overbought=75.0)
+    df = _make_dummy_df(25)
+    with patch("src.strategy.ma_rsi_strategy.moving_average") as mock_ma, \
+         patch("src.strategy.ma_rsi_strategy.rsi") as mock_rsi:
+        mock_ma.side_effect = [
+            pd.Series([110.0] * 25),  # ma_short > ma_long (상승 추세)
+            pd.Series([100.0] * 25),
+        ]
+        mock_rsi.return_value = pd.Series([80.0] * 25)
+        signal = strategy.generate_signal(df)
+    assert signal == "SELL"
