@@ -18,7 +18,7 @@ class Trader:
         """전략 판단 1회 실행 후 주문"""
         logger.info(f"=== {self.ticker} 전략 판단 시작 ===")
 
-        df = self.api.get_ohlcv(self.ticker, interval="day", count=50)
+        df = self.api.get_ohlcv(self.ticker, interval="minute180", count=50)
         if df is None:
             logger.error("캔들 데이터 조회 실패")
             return
