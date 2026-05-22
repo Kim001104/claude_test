@@ -7,7 +7,7 @@ from config.settings import TRADE_COIN, INVEST_AMOUNT
 logger = get_logger(__name__)
 
 FAST_TAKE_PROFIT = 0.02  # +2% 즉시 익절
-FAST_STOP_LOSS   = 0.03  # -3% 즉시 손절
+FAST_STOP_LOSS   = 0.05  # -5% 즉시 손절
 
 
 class Trader:
