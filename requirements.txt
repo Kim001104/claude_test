@@ -1,3 +1,4 @@
 pyupbit
 python-dotenv
 requests
+schedule

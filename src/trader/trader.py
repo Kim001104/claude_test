@@ -6,6 +6,9 @@ from config.settings import TRADE_COIN, INVEST_AMOUNT
 
 logger = get_logger(__name__)
 
+FAST_TAKE_PROFIT = 0.02  # +2% 즉시 익절
+FAST_STOP_LOSS   = 0.03  # -3% 즉시 손절
+
 
 class Trader:
     def __init__(self):
@@ -49,3 +52,31 @@ class Trader:
                     logger.warning(f"KRW 잔고 부족 ({krw_balance:,.0f}원) — 매수 건너뜀")
                     return
                 self.api.buy_market_order(self.ticker, amount)
+
+    def check_price_alarm(self):
+        """5분 감시: 매수가 대비 급등/급락 시 즉시 매도"""
+        coin = self.ticker.split("-")[1]
+        volume = self.api.get_balance(coin)
+        if volume <= 0:
+            return
+
+        avg_buy_price = self.api.get_avg_buy_price(self.ticker)
+        if avg_buy_price <= 0:
+            return
+
+        current_price = self.api.get_current_price(self.ticker)
+        if current_price is None:
+            logger.warning("현재가 조회 실패 — 감시 스킵")
+            return
+
+        change_rate = (current_price - avg_buy_price) / avg_buy_price
+        logger.info(f"[5분 감시] 현재가 {current_price:,.0f} / 매수가 {avg_buy_price:,.0f} ({change_rate*100:+.1f}%)")
+
+        if change_rate >= FAST_TAKE_PROFIT:
+            logger.info(f"[빠른 익절] {change_rate*100:+.1f}% — 즉시 매도")
+            self.api.sell_market_order(self.ticker, volume)
+            return
+
+        if change_rate <= -FAST_STOP_LOSS:
+            logger.info(f"[빠른 손절] {change_rate*100:+.1f}% — 즉시 매도")
+            self.api.sell_market_order(self.ticker, volume)

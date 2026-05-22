@@ -13,10 +13,17 @@ class UpbitAPI:
     # ── 시세 조회 ────────────────────────────────────────────────
 
     def get_current_price(self, ticker: str) -> float:
-        """현재가 조회"""
-        price = pyupbit.get_current_price(ticker)
-        logger.info(f"[{ticker}] 현재가: {price:,.0f}원")
-        return price
+        """현재가 조회. 실패 시 0.0 반환"""
+        try:
+            price = pyupbit.get_current_price(ticker)
+            if price is None:
+                logger.warning(f"[{ticker}] 현재가 조회 실패 — 0 반환")
+                return 0.0
+            logger.info(f"[{ticker}] 현재가: {price:,.0f}원")
+            return float(price)
+        except Exception as e:
+            logger.warning(f"현재가 조회 오류: {e}")
+            return 0.0
 
     def get_ohlcv(self, ticker: str, interval: str = "day", count: int = 200):
         """캔들 데이터 조회 (interval: day/minute1/minute3/minute5/minute15/minute60)"""
@@ -29,10 +36,17 @@ class UpbitAPI:
     # ── 잔고 조회 ────────────────────────────────────────────────
 
     def get_balance(self, currency: str = "KRW") -> float:
-        """잔고 조회 (KRW 또는 코인 심볼 입력)"""
-        balance = self.upbit.get_balance(currency)
-        logger.info(f"[{currency}] 잔고: {balance:,.2f}")
-        return balance
+        """잔고 조회 (KRW 또는 코인 심볼 입력). 실패 시 0.0 반환"""
+        try:
+            balance = self.upbit.get_balance(currency)
+            if balance is None:
+                logger.warning(f"[{currency}] 잔고 조회 실패 — 0 반환")
+                return 0.0
+            logger.info(f"[{currency}] 잔고: {balance:,.2f}")
+            return float(balance)
+        except Exception as e:
+            logger.warning(f"잔고 조회 오류: {e}")
+            return 0.0
 
     def get_avg_buy_price(self, ticker: str) -> float:
         """평균매수가 조회. 미보유 또는 오류 시 0.0 반환"""
