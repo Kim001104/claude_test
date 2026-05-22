@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python -m pytest tests/test_risk_manager.py -v)",
+      "Bash(python tests/test_risk_manager.py)",
+      "Bash(python -c \"import sys, os; sys.path.insert\\(0, os.path.abspath\\(os.path.join\\(os.path.dirname\\('.'\\), '..'\\)\\)\\); from src.strategy.risk_manager import RiskManager\")",
+      "Bash(Get-ChildItem -Path \"c:\\\\claude_test\" -Recurse -Directory)",
+      "Bash(Select-Object -ExpandProperty FullName)",
+      "Bash(git add *)",
+      "Bash(git commit *)",
+      "Bash(python -m pytest tests/ -v)",
+      "Bash(python -m pytest tests/test_risk_manager.py -v --tb=short)"
+    ]
+  }
+}
